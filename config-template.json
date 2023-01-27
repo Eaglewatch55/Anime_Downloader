@@ -1,0 +1,21 @@
+{
+    "save_path": {
+        "1": {
+            "alias": "Temp Descargas",
+            "directory": "D:Temp\\CAPITULOS DESCARGA",
+            "type": "local"
+        },
+        "2": {
+            "alias": "USB Router",
+            "directory": "\\\\192.168.100.1\\usb-058f-CC882A_1\\Video\\Descargas",
+            "type": "nas"
+        },
+        "3": {
+            "alias": "Home Server",
+            "directory": "sftp://server@192.168.100.10/server/directory",
+            "type": "sftp",
+            "user": "user",
+            "pass": "password"
+        }
+    }
+}

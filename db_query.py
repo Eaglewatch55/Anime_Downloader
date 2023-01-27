@@ -1,21 +1,28 @@
 from tinydb import TinyDB, Query
 
-db = TinyDB("C:/Users/orlan/Desktop/CURSOS-PROYECTOS/Proyectos/0. Herramientas/3. Anime Downloader/ch_registry.json")
+
 data = Query()
 
-def add_show (show_name,last_episode, url_list):
-    db.insert({"show" : show_name, "current_episode" : last_episode, "list_url" : url_list })
+# DB_CONFIG QUERIES
+def save_paths():
+    db_config = TinyDB ("config.json")
+    save_path_table = db_config.table("save_path")
+    return(save_path_table.all())
 
-# def next_episode(show_name):
-#     episode = db.search(data.show == show_name)[0].get("current_episode")+1
-#     return(episode)
+# DB_SHOW QUERIES
+db_shows = TinyDB("show_db.json")
+
+def add_show (show_name,last_episode, url_list):
+    db_shows.insert({"show": show_name, 
+                     "current_episode": last_episode, 
+                     "list_url": url_list })
 
 def show_data (show_name):
-    show_data = db.search(data.show == show_name)[0]
+    show_data = db_shows.search(data.show == show_name)[0]
     return(show_data)
 
 def all_shows(atributo):
-    list = db.all()
+    list = db_shows.all()
     shows = []
 
     if atributo == None :
@@ -27,14 +34,8 @@ def all_shows(atributo):
     return(shows)
 
 def delete_show(show_name):
-    db.remove(data.show == show_name)
+    db_shows.remove(data.show == show_name)
 
 def update_chapter(show_name):
     current_episode = show_data(show_name)["current_episode"] + 1
-    db.update({"current_episode": current_episode}, data.show == show_name)
-
-
-# ------------- DEBUGING ---------------
-# show = "Boruto"
-# # update_chapter(show)
-# print(next_episode(show))
+    db_shows.update({"current_episode": current_episode}, data.show == show_name)

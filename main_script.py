@@ -1,6 +1,7 @@
 from requests_html import HTMLSession
 import db_query as query
 
+
 def new_episode(url):
     session = HTMLSession()
     r = session.get(url,timeout=10000)
@@ -55,5 +56,6 @@ def download (url_mp4, ep_name, save_path):
     except:
         return(False)
 
-
+def send_sftp ():
+    pass
 
