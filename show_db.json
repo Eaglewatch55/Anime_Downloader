@@ -1,0 +1,25 @@
+{
+    "_default": {
+        "1": {
+            "show": "One Piece",
+            "current_episode": 1053,
+            "list_url": "https://www3.animeflv.net/anime/one-piece-tv",
+            "folder_name": "One Piece (1999)",
+            "status": "In Broadcast"
+        },
+        "2": {
+            "show": "Boruto",
+            "current_episode": 290,
+            "list_url": "https://www3.animeflv.net/anime/boruto-naruto-next-generations-tv",
+            "folder_name": "Boruto: Naruto Next Generation (2021)",
+            "status": "In Broadcast"
+        },
+        "3": {
+            "show": "Bleach SK",
+            "current_episode": 13,
+            "list_url": "https://www3.animeflv.net/anime/bleach-sennen-kessenhen",
+            "folder_name": "Bleach: Sennen Kessenhen (2022)",
+            "status": "Finished"
+        }
+    }
+}

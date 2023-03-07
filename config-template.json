@@ -1,0 +1,17 @@
+{
+    "save_path": {
+        "1": {
+            "alias": "Temp Descargas",
+            "directory": "D:Temp\\CAPITULOS DESCARGA",
+            "transmission": "local"
+        },
+        "2": {
+            "alias": "Home Server",
+            "host": "192.168.100.10",
+            "directory": "/Shows",
+            "transmission": "sftp",
+            "user": "user",
+            "pass": "password"
+        }
+    }
+}
