@@ -1,21 +1,18 @@
 import tkinter as tkt
-from tkinter import END, Button, Scrollbar, ttk
+from tkinter import END, Scrollbar, ttk
 import db_query as query
 import main_script as script
-import os, time
+from os import system 
+from time import sleep
 from pathlib import Path, PurePosixPath
-import pysftp
 
 
 # BUTTON FUNCTIONS
-#! MEJORAR MANEJO DE ERRORES. ELIMINAR IF ANIDADOS
 def scan_button ():
     shows = []
     shows = query.all_shows("show")
     alias_path = cb_save.get()
     path_info = query.save_paths_dict(alias_path)
-    succes1 = False
-    succes2 = False
     update_log(f"Descarga en {alias_path}")
     
     for show in shows:
@@ -28,78 +25,88 @@ def scan_button ():
             update_log(f"{show} episodio {next_episode} disponible")
             update_log("Obteniendo enlace de descarga...")
             url_zippy = script.scrap_download_link(ep_url)
-            
-            # ADD 0 TO NAME
-            if next_episode < 10:
-                episode_name= f"E0{str(next_episode)}.mp4"
-            else:
-                episode_name= f"E{str(next_episode)}.mp4"
-
-            if url_zippy != False:
-                mp4_link = script.zipp_scrap(url_zippy)
-
-                if mp4_link != False:
-                    update_log(f"Descargando {episode_name}")
-                    temp_path = Path("D:/Temp/CAPITULOS DESCARGA/Temporal")
-                    
-                    # SAVE EPISODE TO LOCAL PATH, THEN MOVE IT
-                    succes1 = script.download(mp4_link, episode_name, temp_path)
-                    
-                    if path_info["transmission"] == "local":
-                        dest_path = Path(path_info["directory"], show_data["folder_name"]) 
-                    elif path_info["transmission"] == "sftp":
-                        dest_path = PurePosixPath(path_info["directory"], show_data["folder_name"])
-                    else:
-                        update_log("Save´s path transmission type invalid")
-                        
-                    succes2 = script.allocate_to_directory(path_info, 
-                                                           temp_path, 
-                                                           dest_path, 
-                                                           episode_name)
-                    
-                    if succes1 and succes2:
-                        update_log("Descarga finalizada")
-                        
-                        query.increase_chapter(show)
-                        
-                    else:
-                        update_log("Descarga fallida")
-                else:
-                    update_log("Archivo no disponible")
-            else:
-                update_log(f"Error al obtener url de {episode_name}")
         else:
-            update_log(f"{show} episodio {next_episode} no disponible")
-    
+            update_log(f"{show} episodio {next_episode} no disponible")   
+            continue 
+            
+        # ADD 0 TO NAME
+        if next_episode < 10:
+            episode_name= f"E0{str(next_episode)}.mp4"
+        else:
+            episode_name= f"E{str(next_episode)}.mp4"
+
+        if url_zippy != False:
+            mp4_link = script.zipp_scrap(url_zippy)
+        else:
+            update_log(f"Error al obtener url de {episode_name}")
+            continue
+
+        if mp4_link != False:
+            update_log(f"Descargando {episode_name}")
+        else:
+            update_log("Archivo no disponible")
+            continue
+        
+        temp_path = Path("D:/Temp/CAPITULOS DESCARGA/Temporal")
+        
+        # SAVE EPISODE TO LOCAL PATH, THEN MOVE IT
+        if script.download(mp4_link, episode_name, temp_path):
+            update_log("Descarga temporal realizada")
+        else:
+            update_log("Descarga fallida")
+            continue
+        
+        if path_info["transmission"] == "local":
+            dest_path = Path(path_info["directory"], show_data["folder_name"]) 
+        elif path_info["transmission"] == "sftp":
+            dest_path = PurePosixPath(path_info["directory"], show_data["folder_name"])
+        else:
+            update_log("Save´s path transmission type invalid")
+            continue
+            
+        if script.allocate_to_directory(path_info, temp_path, dest_path, episode_name):
+            update_log("Reubicación realizada")
+            query.increase_chapter(show)
+        else:
+            update_log("Reubicación fallida")
+            continue
+        
+
     if cb_shutdown.get == "Si":
         update_log("Apagando el sistema en 10 segundos")
-        os.system("shutdown -s -t " + 10)
-        time.sleep(5)        
+        system("shutdown -s -t " + 10)
+        sleep(5)        
         quit()
 
+# REVISAR FUNCIONAMIENTO       
+def add_button(show, chapter, url):
+
+    if show in query.all_shows("show") :
+        update_log("Nombre de show existente")
+        return
+    
+    if url in query.all_shows("list_url"):
+        update_log("URL ya existente")
+        return
+    
+    try:
+        chapter = int(chapter)
+    except TypeError:
+        update_log("Número de capitulo no válido")
+        return
         
-def add_button():
-    show = bx_show.get()
-    url = bx_url.get()
-
-    if show in query.all_shows("show") or url in query.all_shows("list_url"):
+    if "www3.animeflv.net" in url.split("/"):
         try:
-            chapter = int(bx_chapter.get())
+            query.add_show(show,chapter,url)
         except:
-            update_log("Número de capitulo no válido")
+            update_log("Error al agregar el show. Dominio no es animeflv.net")
             return
-
-        if "www3.animeflv.net" in url.split("/"):
-            try:
-                query.add_show(show,chapter,url)
-                update_log("Show agregado exitosamente")
-                cb_show["values"]= query.all_shows("show")
-            except:
-                update_log("Error al agregar el show. Dominio no es animeflv.net")
         else:
-            update_log("Sitio web no válido")
+            update_log("Show agregado exitosamente")
+            cb_show["values"]= query.all_shows("show")
     else:
-        update_log("Show ya existente, revisar nombre o url")
+        update_log("Dominio no válido")
+        return
 
 
 def delete_button ():
@@ -164,12 +171,13 @@ if __name__ == "__main__":
     lb_show = tkt.Label(tab_add, text="Nombre:")
     lb_chapter = tkt.Label(tab_add, text="Captiulo Actual:")
     lb_url = tkt.Label(tab_add, text="URL de lista:")
+#    lb_folder = tkt.Label(tab_add, text="Nombre de Carpeta:")
 
     bx_show = tkt.Entry(tab_add, width= 10)
     bx_chapter = tkt.Entry(tab_add, width= 10)
     bx_url = tkt.Entry(tab_add, width= 15)
 
-    bt_add = tkt.Button(tab_add,text="Agregar", command= add_button)
+    bt_add = tkt.Button(tab_add,text="Agregar", command= add_button(bx_show.get(), bx_chapter.get(), bx_url.get()))
 
     #Pestaña ELIMINAR
     lb_del_desc = tkt.Label(tab_delete, text= "Seleccione el elemento a eliminar")
